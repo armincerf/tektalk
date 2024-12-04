@@ -1,6 +1,10 @@
 import { initializeDoc } from "../services/yjs-utils";
 import { getPollsMap, getValidatedPolls } from "../services/poll";
-import { getReactionsMap, getValidatedReactions } from "../services/reactions";
+import {
+	getReactionsMap,
+	getValidatedReactions,
+	updateReactionInDoc,
+} from "../services/reactions";
 import { createYProvider } from "../yjs/useYProvider";
 
 const DEBUG = true;
@@ -145,6 +149,11 @@ function createPollAndReactionStore() {
 		updateStateFromYJS();
 	}
 
+	function updateReaction(reactionId: string) {
+		if (!doc) return;
+		updateReactionInDoc(doc, reactionId, 1);
+	}
+
 	return {
 		// Poll methods
 		get polls() {
@@ -180,6 +189,9 @@ function createPollAndReactionStore() {
 			return state.currentSlide;
 		},
 		updateSlideState,
+
+		// Reaction methods
+		updateReaction,
 	};
 }
 

@@ -8,6 +8,7 @@
   import AudiencePage from "./components/AudiencePage.svelte";
   import { yjsStore } from "./lib/stores/yjsStore.svelte";
   import { POLLS } from "./lib/constants/polls";
+  import ReactionDisplay from "./components/ReactionDisplay.svelte";
 
   type Props = {
     app: Config["app"];
@@ -58,6 +59,7 @@
   <div class="slides">
     <Presentation />
   </div>
+  <ReactionDisplay />
   <CanvasBg bind:canvasEl={canvasEL} />
 {:else}
   <AudiencePage />

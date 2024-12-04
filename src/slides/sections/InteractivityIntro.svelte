@@ -1,16 +1,8 @@
 <script lang="ts">
-    import { yjsStore } from "../../lib/stores/yjsStore.svelte";
     import { POLL_IDS, POLLS } from "../../lib/constants/polls";
     import PollResults from "../../components/PollResults.svelte";
 
-    const slideId = $derived(yjsStore.currentSlide);
     const currentPoll = POLLS[POLL_IDS.INTERACTIVITY];
-
-    $effect(() => {
-        if (slideId === POLL_IDS.INTERACTIVITY) {
-            console.log("trigger poll");
-        }
-    });
 </script>
 
 <section id="why-interactivity" data-transition="slide">
