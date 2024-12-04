@@ -1,0 +1,13 @@
+#:schema ../node_modules/wrangler/config-schema.json
+name = "tektalk-yjs-sync"
+compatibility_date = "2024-11-12"
+main = "./index.ts"
+compatibility_flags = ["nodejs_compat"]
+
+[[durable_objects.bindings]]
+name = "TekTalkYjsSync"
+class_name = "TekTalkYjsSync"
+
+[[migrations]]
+tag = "v1" # Should be unique
+new_sqlite_classes = ["TekTalkYjsSync"]
