@@ -1,37 +1,38 @@
 {
-  "name": "2024-11-27-materkolloquium",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "run-p dev:*",
-    "dev:vite": "vite dev",
-    "dev:wrangler": "cd server && wrangler dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
-    "deploy": "npm run build && wrangler deploy && cd server && wrangler deploy"
-  },
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.0.1",
-    "@tsconfig/svelte": "^5.0.4",
-    "@types/reveal.js": "^5.0.4",
-    "autoprefixer": "^10.4.20",
-    "npm-run-all": "^4.1.5",
-    "postcss": "^8.4.49",
-    "svelte": "^5.5.3",
-    "svelte-check": "^4.1.1",
-    "tailwindcss": "^3.4.16",
-    "tslib": "^2.8.1",
-    "typescript": "~5.7.2",
-    "vite": "^6.0.2"
-  },
-  "dependencies": {
-    "@cloudflare/workers-types": "^4.20241202.0",
-    "partyserver": "^0.0.57",
-    "reveal.js": "^5.1.0",
-    "wrangler": "^3.92.0",
-    "y-partyserver": "^0.0.29",
-    "yjs": "^13.6.20"
-  }
+	"name": "2024-11-27-materkolloquium",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "run-p dev:*",
+		"dev:vite": "vite dev",
+		"dev:wrangler": "cd server && wrangler dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
+		"deploy": "npm run build && wrangler deploy && cd server && wrangler deploy"
+	},
+	"devDependencies": {
+		"@sveltejs/vite-plugin-svelte": "^5.0.1",
+		"@tsconfig/svelte": "^5.0.4",
+		"@types/reveal.js": "^5.0.4",
+		"autoprefixer": "^10.4.20",
+		"npm-run-all": "^4.1.5",
+		"postcss": "^8.4.49",
+		"svelte": "^5.5.3",
+		"svelte-check": "^4.1.1",
+		"tailwindcss": "^3.4.16",
+		"tslib": "^2.8.1",
+		"typescript": "~5.7.2",
+		"vite": "^6.0.2"
+	},
+	"dependencies": {
+		"@cloudflare/workers-types": "^4.20241202.0",
+		"partyserver": "^0.0.57",
+		"reveal.js": "^5.1.0",
+		"valibot": "^1.0.0-beta.9",
+		"wrangler": "^3.92.0",
+		"y-partyserver": "^0.0.29",
+		"yjs": "^13.6.20"
+	}
 }

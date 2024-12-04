@@ -2,12 +2,12 @@ import YProvider from "y-partyserver/provider";
 import type * as Y from "yjs";
 
 type UseYProviderOptions = {
-  host?: string | undefined;
-  room: string;
-  party?: string;
-  doc?: Y.Doc;
-  prefix?: string;
-  options?: ConstructorParameters<typeof YProvider>[3];
+	host?: string | undefined;
+	room: string;
+	party?: string;
+	doc?: Y.Doc;
+	prefix?: string;
+	options?: ConstructorParameters<typeof YProvider>[3];
 };
 /**
  * Create a YProvider instance.
@@ -20,20 +20,25 @@ type UseYProviderOptions = {
  * @param {Object} options.options - Additional options for YProvider.
  * @returns {YProvider} The YProvider instance.
  */
-export function createYProvider({ host, room, party, doc, options, prefix }: UseYProviderOptions) {
-  const provider = new YProvider(
-    import.meta.env.DEV ? "http://localhost:8989" : "https://tektalk.uk/",
-    room,
-    doc,
-    {
-      connect: false,
-      party,
-      prefix,
-      ...options,
-    }
-  );
+export function createYProvider({
+	room,
+	doc,
+	options,
+	prefix,
+}: UseYProviderOptions) {
+	const provider = new YProvider(
+		import.meta.env.DEV ? "http://localhost:8787" : "https://tektalk.uk/",
+		room,
+		doc,
+		{
+			connect: false,
+			party: "tek-talk-yjs-sync",
+			prefix,
+			...options,
+		},
+	);
 
-  provider.connect();
+	provider.connect();
 
-  return provider;
+	return provider;
 }

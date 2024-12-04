@@ -1,58 +1,52 @@
 <script lang="ts">
-  import Reveal from "reveal.js";
   import { onMount, tick } from "svelte";
+  import Reveal from "reveal.js";
+  import type { RevealApi } from "./types/reveal";
+  import type { Config } from "./config";
   import Presentation from "./Presentation.svelte";
-  import { setSlideContext, type SlideState } from "./context/SlideContext";
-  import {
-    defaultPlaybackContext,
-    setPlaybackContext,
-    type PlaybackContext,
-  } from "./context/PlaybackContext";
-  import Controls from "./lib/Controls.svelte";
   import CanvasBg from "./lib/CanvasBG.svelte";
+  import AudiencePage from "./components/AudiencePage.svelte";
+  import { yjsStore } from "./lib/stores/yjsStore.svelte";
+  import { POLLS } from "./lib/constants/polls";
 
   type Props = {
-    app: any;
-    reveal: any;
+    app: Config["app"];
+    reveal: Config["reveal"];
   };
 
-  let { app, reveal }: Props = $props();
+  const { app, reveal }: Props = $props();
+  // biome-ignore lint/style/useConst: <explanation>
   let canvasEL = $state<HTMLCanvasElement>();
+  let deck = $state<RevealApi>();
 
-  let deck = $state<Reveal.Api>();
+  onMount(() => {
+    // Initialize YJS store first - do this for all paths
+    const { cleanup } = yjsStore.initializeStore();
 
-  const slideState = $state<SlideState>({
-    currentSlide: null,
-    fragmentShown: null,
-    fragmentHidden: null,
-  });
-  setSlideContext(slideState);
+    // Only initialize Reveal.js for the presenter view
+    const path = window.location.pathname;
+    if (path === "/slides") {
+      deck = new Reveal(reveal) as RevealApi;
+      deck.initialize();
 
-  const playbackContext = $state<PlaybackContext>(defaultPlaybackContext);
-  setPlaybackContext(playbackContext);
+      deck.on("slidechanged", (event) => {
+        const slideId = event.currentSlide?.getAttribute("id") || "";
+        if (slideId) {
+          yjsStore.updateSlideState(slideId);
 
-  onMount(async () => {
-    await tick();
-    console.log("finish");
-    deck = new Reveal(reveal);
-    await deck.initialize();
+          // Initialize poll if this is a poll slide
+          if (slideId in POLLS) {
+            const poll = POLLS[slideId as keyof typeof POLLS];
+            yjsStore.initPoll({
+              pollId: poll.id,
+              questions: poll.options,
+            });
+          }
+        }
+      });
+    }
 
-    slideState.currentSlide = deck.getCurrentSlide();
-
-    deck.on("slidechanged", (e) => {
-      // @ts-ignore
-      slideState.currentSlide = e.currentSlide;
-    });
-
-    deck.on("fragmentshown", (e) => {
-      // @ts-ignore
-      slideState.fragmentShown = e.fragment;
-    });
-
-    deck.on("fragmenthidden", (e) => {
-      // @ts-ignore
-      slideState.fragmentHidden = e.fragment;
-    });
+    return cleanup;
   });
 </script>
 
@@ -60,8 +54,11 @@
   <title>{app.name}</title>
 </svelte:head>
 
-<div class="slides">
-  <Presentation canvasEl={canvasEL} />
-</div>
-<Controls canvasEl={canvasEL} />
-<CanvasBg bind:canvasEl={canvasEL} />
+{#if window.location.pathname === "/slides"}
+  <div class="slides">
+    <Presentation />
+  </div>
+  <CanvasBg bind:canvasEl={canvasEL} />
+{:else}
+  <AudiencePage />
+{/if}

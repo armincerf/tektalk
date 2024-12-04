@@ -1,30 +1,25 @@
 import Markdown from "reveal.js/plugin/markdown/markdown";
-// import MathReveal from "reveal.js/plugin/math/math";
 import Highlight from "reveal.js/plugin/highlight/highlight";
 import RevealNotes from "reveal.js/plugin/notes/notes";
 
-// Import theme
 import "reveal.js/dist/reveal.css";
 import "reveal.js/dist/theme/black.css";
-
-// Import CSS for plugins
-// import "reveal.js/plugin/highlight/monokai.css";
 import "./assets/dracula.css";
+import type { Options } from "reveal.js";
 
-export default {
-	// App Config
+export type Config = {
+	app: {
+		name: string;
+	};
+	reveal: Options;
+};
+
+const config: Config = {
 	app: {
 		name: "Alex Davis",
 	},
-	// Reveal Config
 	reveal: {
-		plugins: [
-			Highlight,
-			Markdown,
-			// MathReveal.MathJax2,
-			// MathReveal.KaTeX,
-			RevealNotes,
-		],
+		plugins: [Highlight, Markdown, RevealNotes],
 		hash: true,
 		controlsTutorial: false,
 		center: true,
@@ -32,5 +27,7 @@ export default {
 		controls: false,
 		progress: false,
 		disableLayout: false,
-	} as Reveal.Options,
+	},
 };
+
+export default config;

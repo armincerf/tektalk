@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  font-family: "Inter", sans-serif;
+  font-size: 24px;
+}
+
 body {
   --r-heading-color: rgb(255, 204, 244);
   /* --r-heading-color: rgba(186, 225, 255, 1); */

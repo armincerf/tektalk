@@ -1,224 +1,186 @@
+import { initializeDoc } from "../services/yjs-utils";
+import { getPollsMap, getValidatedPolls } from "../services/poll";
+import { getReactionsMap, getValidatedReactions } from "../services/reactions";
 import { createYProvider } from "../yjs/useYProvider";
-import type * as Y from "yjs";
-import type YProvider from "y-partyserver/provider";
-import { party, partyHost, partyUrl, protocol } from "../services/config";
 
 const DEBUG = true;
 const debug = (...args: unknown[]) => {
 	if (DEBUG) console.log("[yjsStore]", ...args);
 };
 
-function createEventStore() {
-	const state = $state({
-		players: new Map<string, Player>(),
-		matches: new Map<string, Match>(),
-		games: new Map<string, Game>(),
-		scoreboards: new Map<string, Scoreboard>(),
-		initialized: false,
-		lastUpdate: Date.now(),
-		eventId: "",
-	});
+type SlideState = {
+	currentSlide: string;
+	lockSessionId: string | null;
+	lockTimestamp: number | null;
+};
 
-	let provider: YProvider | null = null;
-	let tournamentService: TournamentService;
-	let yPlayers: Y.Map<Player>;
-	let yMatches: Y.Map<Match>;
-	let yGames: Y.Map<Game>;
-	let yScoreboards: Y.Map<Scoreboard>;
+const LOCK_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 
-	function initializeStore(eventId: string) {
-		debug("Initializing store", eventId);
+// Define a reactive state
+const state = $state({
+	currentSlide: "",
+	lockSessionId: null as string | null,
+	lockTimestamp: null as number | null,
+	polls: new Map<string, Record<string, string[]>>(),
+	reactions: new Map<string, number>(),
+	initialized: false,
+	lastUpdate: Date.now(),
+});
+
+function createPollAndReactionStore() {
+	const doc = initializeDoc();
+	const polls = getPollsMap(doc);
+	const reactions = getReactionsMap(doc);
+	const slides = doc.getMap<SlideState>("slides");
+	const sessionId = crypto.randomUUID();
+	let provider: ReturnType<typeof createYProvider> | null = null;
+
+	// Update the state from YJS
+	function updateStateFromYJS() {
+		state.polls = new Map(polls.entries());
+		state.reactions = new Map(reactions.entries());
+		state.lastUpdate = Date.now();
+		state.currentSlide = slides.get("state")?.currentSlide ?? "";
+		state.initialized = true;
+	}
+
+	function initializeStore() {
+		debug("Initializing poll and reaction store");
+
+		// Create and connect the provider
 		provider = createYProvider({
-			host: `${protocol}://${partyHost}`,
-			party,
-			room: eventId,
+			room: "slides",
+			doc,
 			options: {
 				disableBc: true,
 				params: {
-					userId:
-						new URLSearchParams(window.location.search).get("userId") ||
-						"Anonymous",
+					userId: sessionId,
 				},
 			},
 		});
 
-		tournamentService = createTournamentService(provider.doc);
+		// Set up observers
+		slides.observe(() => updateStateFromYJS());
+		polls.observe(() => updateStateFromYJS());
+		reactions.observe(() => updateStateFromYJS());
 
-		state.eventId = eventId;
-
-		yPlayers = provider.doc.getMap("players");
-		yMatches = provider.doc.getMap("matches");
-		yGames = provider.doc.getMap("games");
-		yScoreboards = provider.doc.getMap("scoreboards");
-		yPlayers.observe(() => updateStateFromYJS());
-		yMatches.observe(() => updateStateFromYJS());
-		yGames.observe(() => updateStateFromYJS());
-		yScoreboards.observe(() => updateStateFromYJS());
+		// Initial state update
 		updateStateFromYJS();
+
 		return {
 			cleanup: () => {
-				debug("Cleaning up provider");
+				debug("Cleaning up store");
 				provider?.destroy();
+				doc.destroy();
 			},
 		};
 	}
 
-	// Helper Methods
-	function getWaitingPlayers(): Player[] {
-		return Array.from(state.players.values()).filter(
-			(p) => p.status === "waiting",
-		);
+	function getValidatedPollsState() {
+		return getValidatedPolls(doc);
 	}
 
-	function getPlayersForMatch(matchId: string): Player[] {
-		const match = state.matches.get(matchId);
-		if (!match) return [];
-		return Array.from(state.players.values()).filter((p) =>
-			[match.playerOneId, match.playerTwoId, match.umpireId].includes(p.id),
-		);
+	function getValidatedReactionsState() {
+		return getValidatedReactions(doc);
 	}
 
-	function getActiveMatches(): Match[] {
-		return Array.from(state.matches.values()).filter(
-			(m) => m.startedAt && !m.finishedAt,
-		);
-	}
-
-	function getPendingMatches(): Match[] {
-		return Array.from(state.matches.values()).filter(
-			(m) => !m.startedAt && !m.finishedAt,
-		);
-	}
-
-	function getCompletedMatches(): Match[] {
-		return Array.from(state.matches.values()).filter((m) => m.finishedAt);
-	}
-
-	function getMatchByTableId(tableId: number): Match | undefined {
-		return Array.from(state.matches.values()).find(
-			(m) => !m.finishedAt && m.tableId === tableId,
-		);
-	}
-
-	function getGameById(gameId: string): Game | undefined {
-		return state.games.get(gameId);
-	}
-
-	function getGamesByMatchId(matchId: string): Game[] {
-		return getGamesForMatch(Array.from(state.games.values()), matchId);
-	}
-
-	function getCurrentGameByMatchId(matchId: string): Game | undefined {
-		const latestGame = getGamesByMatchId(matchId)
-			.sort((a, b) => a.gameNumber - b.gameNumber)
-			.pop();
-		if (latestGame?.endedAt) {
-			return undefined;
-		}
-		return latestGame;
-	}
-
-	function getMatchById(matchId: string): Match | undefined {
-		return state.matches.get(matchId);
-	}
-
-	function getScoreboard(matchId: string): Scoreboard | undefined {
-		return state.scoreboards.get(matchId);
-	}
-
-	// State Management
-	function updateStateFromYJS() {
-		state.players = new Map(yPlayers.entries());
-		state.matches = new Map(yMatches.entries());
-		state.games = new Map(yGames.entries());
-		state.scoreboards = new Map(yScoreboards.entries());
-		state.lastUpdate = Date.now();
-		state.initialized = true;
-		state.matches.forEach((match) => {
-			const scoreboard = getScoreboard(match.id);
-			if (!provider?.doc || !scoreboard) return;
-			const scoreboardState = determineScoreboardState(provider?.doc, match.id);
-			if (scoreboardState) {
-				state.scoreboards.set(match.id, {
-					...scoreboard,
-					currentState: scoreboardState,
-				});
-			}
+	function initPoll({
+		pollId,
+		questions,
+	}: { pollId: string; questions: string[] }) {
+		doc.transact(() => {
+			const newPoll = questions.reduce(
+				(acc, question) => {
+					acc[question] = [];
+					return acc;
+				},
+				{} as Record<string, string[]>,
+			);
+			polls.set(pollId, newPoll);
 		});
+		debug(`Initialized poll with ID: ${pollId}`);
 	}
 
-	async function statusTransition(player: Player, newStatus: PlayerStatus) {
-		if (!state.eventId) {
-			console.error("Can't transition player status - eventId not found");
+	function submitPollResponse({
+		pollId,
+		answer,
+		userId,
+	}: { pollId: string; answer: string; userId: string }) {
+		const poll = polls.get(pollId);
+		if (!poll) {
+			debug(`Poll with ID: ${pollId} not found`);
+			return false;
+		}
+
+		doc.transact(() => {
+			poll[answer] = [...(poll[answer] || []), userId];
+			polls.set(pollId, poll);
+		});
+		debug(`User ${userId} submitted response to poll ID: ${pollId}`);
+		return true;
+	}
+
+	function submitReaction({ reactionId }: { reactionId: string }) {
+		const currentCount = reactions.get(reactionId) ?? 0;
+		doc.transact(() => {
+			reactions.set(reactionId, currentCount + 1);
+		});
+		debug(`Reaction with ID: ${reactionId} incremented`);
+	}
+
+	function updateSlideState(newSlide: string) {
+		if (!provider?.doc) {
+			debug("Provider not initialized");
 			return;
 		}
-		await fetch(`${partyUrl(state.eventId)}/transition`, {
-			method: "POST",
-			body: JSON.stringify({
-				player_id: player.id,
-				from_status: player.status,
-				to_status: newStatus,
-			} satisfies TransitionEvent),
+
+		doc.transact(() => {
+			slides.set("state", {
+				currentSlide: newSlide,
+				lockSessionId: sessionId,
+				lockTimestamp: Date.now(),
+			});
 		});
+		debug(`Updated current slide to: ${newSlide}`);
+		updateStateFromYJS();
 	}
 
 	return {
-		// State Getters
-		get players() {
+		// Poll methods
+		get polls() {
 			$effect.root(() => {
 				state.lastUpdate;
 			});
-			return state.players;
+			return state.polls;
 		},
-		get matches() {
-			$effect.root(() => {
-				state.lastUpdate;
-			});
-			return state.matches;
-		},
-		get games() {
-			$effect.root(() => {
-				state.lastUpdate;
-			});
-			return state.games;
-		},
-		get scoreboards() {
-			$effect.root(() => {
-				state.lastUpdate;
-			});
-			return state.scoreboards;
-		},
-		get initialized() {
-			return state.initialized;
-		},
+		initPoll,
+		submitPollResponse,
 
-		// Read-only helper methods
-		getWaitingPlayers,
-		getPlayersForMatch,
-		getActiveMatches,
-		getPendingMatches,
-		getCompletedMatches,
-		getMatchByTableId,
-		getGameById,
-		getGamesByMatchId,
-		getCurrentGameByMatchId,
-		getMatchById,
-		getScoreboard,
-		statusTransition,
+		// Reaction methods
+		get reactions() {
+			$effect.root(() => {
+				state.lastUpdate;
+			});
+			return state.reactions;
+		},
+		submitReaction,
 
 		// Store initialization
 		initializeStore,
 
-		// Expose tournamentService for mutations
-		get service() {
-			return tournamentService;
+		// Validation methods
+		getValidatedPollsState,
+		getValidatedReactionsState,
+
+		// Slide methods
+		get currentSlide() {
+			$effect.root(() => {
+				state.lastUpdate;
+			});
+			return state.currentSlide;
 		},
-		get doc() {
-			return provider?.doc || null;
-		},
+		updateSlideState,
 	};
 }
 
-export const yjsStore = createEventStore();
-
-export type TEventStore = typeof yjsStore;
+export const yjsStore = createPollAndReactionStore();

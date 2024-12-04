@@ -1,30 +1,14 @@
 <script lang="ts">
-  import { getSlideContext } from "../context/SlideContext";
-
-  type Props = {
-    canvasEl?: HTMLCanvasElement;
-  };
-
-  let { canvasEl }: Props = $props();
-  const slideState = getSlideContext();
-
-  let currentSlideId = $derived.by(() => {
-    return slideState.currentSlide?.id;
-  });
-
-  $effect(() => {
-    // Subscribe to poll results here
-  });
-
-  const handleAudienceDeviceUpdate = () => {
-    // Logic to show poll on audience devices
-  };
+  import InteractivityIntro from "./sections/InteractivityIntro.svelte";
+  import TableTennisApp from "./sections/TableTennisApp.svelte";
+  import JuxtPong from "./sections/JuxtPong.svelte";
+  import TechnicalDeepDive from "./sections/TechnicalDeepDive.svelte";
 </script>
 
 <section>
   <section id="title-slide">
     <div class="w-screen h-screen flex flex-col items-center justify-center">
-      <div style="position: absolute; top: 20px; right: 20px;">
+      <div class="absolute top-5 right-5">
         <img src="qr-code.png" alt="QR Code" />
         <p>tektalk.uk</p>
       </div>
@@ -36,34 +20,20 @@
 
   <section id="qr-focus" data-auto-animate>
     <div
-      class="qr-container"
-      style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center"
     >
-      <img src="qr-code.png" alt="QR Code" style="width: 300px;" />
+      <img src="qr-code.png" alt="QR Code" class="w-[300px]" />
       <p>tektalk.uk</p>
     </div>
   </section>
-
-  <section
-    id="poll-results"
-    data-transition="slide"
-    data-state="trigger-poll"
-    data-background-transition="zoom"
-  >
-    <div class="poll-container">
-      <!-- Poll results will be dynamically inserted here -->
-    </div>
-
-    <aside class="notes">This slide triggers the audience poll</aside>
-  </section>
+  <InteractivityIntro />
+  <TableTennisApp />
+  <JuxtPong />
+  <TechnicalDeepDive />
 </section>
 
 <style>
   .qr-container {
     text-align: center;
-  }
-  .poll-container {
-    width: 80%;
-    margin: 0 auto;
   }
 </style>
