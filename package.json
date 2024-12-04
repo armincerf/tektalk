@@ -1,0 +1,30 @@
+{
+  "name": "2024-11-27-materkolloquium",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.1",
+    "@tsconfig/svelte": "^5.0.4",
+    "@types/reveal.js": "^5.0.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "svelte": "^5.5.3",
+    "svelte-check": "^4.1.1",
+    "tailwindcss": "^3.4.16",
+    "tslib": "^2.8.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.2"
+  },
+  "dependencies": {
+    "reveal.js": "^5.1.0",
+    "tonal": "^6.3.0",
+    "tone": "^15.1.3"
+  }
+}
