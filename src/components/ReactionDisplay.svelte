@@ -85,7 +85,7 @@
 </script>
 
 <div
-    class="reaction-counter fixed top-4 left-4 p-2 bg-gray-800 bg-opacity-75 z-50 rounded-full"
+    class="reaction-counter fixed bottom-4 left-4 p-2 bg-gray-800 bg-opacity-75 z-50 rounded-full"
 >
     <div class="flex gap-4 text-sm">
         {#each Object.keys(emojiMap) as reactionType}

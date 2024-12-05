@@ -32,7 +32,7 @@ export function createYProvider({
 		doc,
 		{
 			connect: false,
-			party: "tek-talk-yjs-sync",
+			party: "juxtmas-2024-test",
 			prefix,
 			...options,
 		},

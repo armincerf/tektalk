@@ -34,16 +34,27 @@
             class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
         >
             <div class="bg-white text-black p-8 rounded-lg w-11/12">
-                <h2 class="text-2xl mb-4">Enter Your ID</h2>
-                <!-- svelte-ignore a11y_autofocus -->
-                <input
-                    type="text"
-                    class="border p-2 w-full"
-                    placeholder="Enter your three-letter code or name"
-                    onchange={(e) =>
-                        setUserId((e.target as HTMLInputElement).value)}
-                    autofocus
-                />
+                <p class="text-2xl mb-4 text-black">Enter a name</p>
+                <form
+                    class="flex flex-col gap-4"
+                    onsubmit={(e) => {
+                        e.preventDefault();
+                        setUserId((e.target as HTMLInputElement).value);
+                    }}
+                >
+                    <!-- svelte-ignore a11y_autofocus -->
+                    <input
+                        onchange={(e) =>
+                            setUserId((e.target as HTMLInputElement).value)}
+                        type="text"
+                        class="border p-2 w-full"
+                        placeholder="Enter your JUXT code or name"
+                        autofocus
+                    />
+                    <button type="submit" class="bg-black text-white p-2">
+                        Enter
+                    </button>
+                </form>
             </div>
         </div>
     {/if}
@@ -53,7 +64,9 @@
             <RenderPoll poll={currentPoll} />
         {:else}
             <div class="text-center">
-                <h1 class="text-4xl font-bold mb-8">Welcome to TekTalk</h1>
+                <div class="flex flex-row gap-4 justify-center items-center">
+                    <img src="/juxtmas.png" alt="Juxtmas" class="h-12" />
+                </div>
                 <p class="text-xl mb-8">
                     React or ask questions during the presentation
                 </p>
