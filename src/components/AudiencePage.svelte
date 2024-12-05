@@ -2,20 +2,12 @@
     import { onMount } from "svelte";
     import { yjsStore } from "../lib/stores/yjsStore.svelte";
     import { POLLS } from "../lib/constants/polls";
+    import { useQueryParams } from "../lib/useParams.svelte";
     import RenderPoll from "./RenderPoll.svelte";
     import ReactionGrid from "./ReactionGrid.svelte";
 
-    let userId: string | null = $state(null);
-    let showModal = $state(false);
-
-    onMount(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        userId = urlParams.get("userId");
-
-        if (!userId) {
-            showModal = true;
-        }
-    });
+    const [params, helpers] = useQueryParams(window.location);
+    const userId = $derived(params.userId);
 
     const slideId = $derived(yjsStore.currentSlide);
     const pollSlideIds = Object.keys(POLLS);
@@ -25,13 +17,18 @@
             : null;
     });
 
+    $effect(() => {
+        console.log("userId", userId, slideId);
+    });
+
+    const showModal = $derived(!userId || userId.length < 3);
+
     function setUserId(inputUserId: string) {
-        userId = inputUserId;
-        showModal = false;
+        helpers.update({ userId: inputUserId });
     }
 </script>
 
-<main class="min-h-screen bg-gray-900 text-white">
+<main class="min-h-screen bg-gray-900 text-white text-xs">
     {#if showModal}
         <div
             class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
@@ -58,23 +55,9 @@
             <div class="text-center">
                 <h1 class="text-4xl font-bold mb-8">Welcome to TekTalk</h1>
                 <p class="text-xl mb-8">
-                    Join the interactive presentation experience!
+                    React or ask questions during the presentation
                 </p>
-
-                <div class="max-w-md mx-auto bg-gray-800 rounded-lg p-6">
-                    <h2 class="text-2xl mb-4">Your Session</h2>
-                    <p class="mb-4">User ID: {userId}</p>
-                    {#if slideId}
-                        <p class="mb-4">Current Slide: {slideId}</p>
-                    {/if}
-                    <p class="text-sm text-gray-400">
-                        Keep this page open to participate in polls and
-                        interactions
-                    </p>
-                </div>
-
                 <div class="mt-8">
-                    <h2 class="text-2xl mb-4">React to the presentation</h2>
                     <ReactionGrid />
                 </div>
             </div>

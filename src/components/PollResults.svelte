@@ -3,7 +3,10 @@
     import { fade, scale } from "svelte/transition";
     import type { PollConfig } from "../lib/constants/polls";
 
-    const { poll }: { poll: PollConfig } = $props();
+    const {
+        poll,
+        showTitle = true,
+    }: { poll: PollConfig; showTitle?: boolean } = $props();
 
     const results = $derived.by(() => {
         const pollData = yjsStore.polls.get(poll.id) ?? {};
@@ -23,7 +26,9 @@
 </script>
 
 <div class="space-y-6 w-full max-w-2xl mx-auto" in:fade={{ duration: 300 }}>
-    <h3 class="text-2xl font-semibold mb-4">{poll.question}</h3>
+    {#if showTitle}
+        <h3 class="text-2xl font-semibold mb-4">{poll.question}</h3>
+    {/if}
 
     <div class="space-y-4">
         {#each results as { option, votes, percentage }}

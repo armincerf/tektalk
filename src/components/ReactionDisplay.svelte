@@ -7,45 +7,58 @@
         emoji: string;
     };
 
+    type ReactionType = keyof typeof emojiMap;
+
     let floatingEmojis = $state<Emoji[]>([]);
     const reactions = $derived(yjsStore.reactions);
 
     const emojiMap = {
+        wave: "👋",
         clap: "👏",
         explode: "🤯",
+        thumbsup: "👍",
+        thumbsdown: "👎",
     } as const;
 
-    let prevClap = 0;
-    let prevExplode = 0;
+    // Track previous values for all reactions
+    let previousValues = Object.fromEntries(
+        Object.keys(emojiMap).map((key) => [key, 0]),
+    );
+
     let lastEmojiAddedAt = 0;
 
     $effect(() => {
         if (!reactions) return;
 
-        const currentClap = reactions.get("clap") ?? 0;
-        const currentExplode = reactions.get("explode") ?? 0;
+        // Get all current values
+        const currentValues = Object.fromEntries(
+            Object.keys(emojiMap).map((key) => [key, reactions.get(key) ?? 0]),
+        );
 
+        // Check all reactions for changes
+        // biome-ignore lint/complexity/noForEach: <explanation>
+        Object.keys(emojiMap).forEach((reactionType) => {
+            const currentValue = currentValues[reactionType];
+            const previousValue = previousValues[reactionType];
+
+            if (currentValue > previousValue) {
+                console.log(`Adding ${reactionType} emoji`);
+                addFloatingEmoji(emojiMap[reactionType as ReactionType]);
+            }
+        });
+
+        // Log the same way as before for debugging consistency
         console.log("Current values:", {
-            clap: currentClap,
-            explode: currentExplode,
+            clap: currentValues.clap,
+            explode: currentValues.explode,
         });
         console.log("Previous values:", {
-            clap: prevClap,
-            explode: prevExplode,
+            clap: previousValues.clap,
+            explode: previousValues.explode,
         });
 
-        if (currentClap > prevClap) {
-            console.log("Adding clap emoji");
-            addFloatingEmoji(emojiMap.clap);
-        }
-
-        if (currentExplode > prevExplode) {
-            console.log("Adding explode emoji");
-            addFloatingEmoji(emojiMap.explode);
-        }
-
-        prevClap = currentClap;
-        prevExplode = currentExplode;
+        // Update previous values
+        previousValues = currentValues;
     });
 
     function addFloatingEmoji(emoji: string) {
@@ -75,8 +88,12 @@
     class="reaction-counter fixed top-4 left-4 p-2 bg-gray-800 bg-opacity-75 z-50 rounded-full"
 >
     <div class="flex gap-4 text-sm">
-        <div>👏 {reactions?.get("clap") ?? 0}</div>
-        <div>🤯 {reactions?.get("explode") ?? 0}</div>
+        {#each Object.keys(emojiMap) as reactionType}
+            <div>
+                {emojiMap[reactionType as ReactionType]}
+                {reactions?.get(reactionType) ?? 0}
+            </div>
+        {/each}
     </div>
 </div>
 

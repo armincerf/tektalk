@@ -9,6 +9,7 @@
   import { yjsStore } from "./lib/stores/yjsStore.svelte";
   import { POLLS } from "./lib/constants/polls";
   import ReactionDisplay from "./components/ReactionDisplay.svelte";
+  import QuestionDisplay from "./components/QuestionDisplay.svelte";
 
   type Props = {
     app: Config["app"];
@@ -30,6 +31,24 @@
       deck = new Reveal(reveal) as RevealApi;
       deck.initialize();
 
+      // Add event listener for question navigation
+      window.addEventListener('navigateToSlide', ((event: CustomEvent) => {
+        const slideId = event.detail.slideId;
+        const slideElement = document.getElementById(slideId);
+        if (slideElement && deck) {
+          // Debug log to see what we're working with
+          console.log('Slide element:', slideElement);
+          console.log('data-id:', slideElement.getAttribute('data-id'));
+          
+          // Try using indices instead of data-id
+          const indices = deck.getIndices(slideElement);
+          console.log('Indices:', indices);
+          if (indices) {
+            deck.slide(indices.h, indices.v);
+          }
+        }
+      }) as EventListener);
+
       deck.on("slidechanged", (event) => {
         const slideId = event.currentSlide?.getAttribute("id") || "";
         if (slideId) {
@@ -47,7 +66,28 @@
       });
     }
 
-    return cleanup;
+    return () => {
+      cleanup();
+      // Clean up event listener
+      if (path === "/slides") {
+        window.removeEventListener('navigateToSlide', ((event: CustomEvent) => {
+          const slideId = event.detail.slideId;
+          const slideElement = document.getElementById(slideId);
+          if (slideElement && deck) {
+            // Debug log to see what we're working with
+            console.log('Slide element:', slideElement);
+            console.log('data-id:', slideElement.getAttribute('data-id'));
+            
+            // Try using indices instead of data-id
+            const indices = deck.getIndices(slideElement);
+            console.log('Indices:', indices);
+            if (indices) {
+              deck.slide(indices.h, indices.v);
+            }
+          }
+        }) as EventListener);
+      }
+    };
   });
 </script>
 
@@ -60,6 +100,7 @@
     <Presentation />
   </div>
   <ReactionDisplay />
+  <QuestionDisplay />
   <CanvasBg bind:canvasEl={canvasEL} />
 {:else}
   <AudiencePage />

@@ -24,11 +24,8 @@ export const POLLS: Record<
 	[POLL_IDS.SPIN_APP]: {
 		id: POLL_IDS.SPIN_APP,
 		title: "Setup Requirements",
-		question: "Would you be willing to set up this environment?",
-		options: [
-			"Yes, seems reasonable",
-			"Maybe, if really needed",
-			"No, too complicated",
-		],
+		question:
+			"Do you have a table tennis table, tripod, bright lighting, the ability to compile ios apps from source and an interest in knowing the exact spin of a table tennis ball?",
+		options: ["Yes, I have all of these things", "No..."],
 	},
 };

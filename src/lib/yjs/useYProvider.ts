@@ -27,7 +27,7 @@ export function createYProvider({
 	prefix,
 }: UseYProviderOptions) {
 	const provider = new YProvider(
-		import.meta.env.DEV ? "http://localhost:8787" : "https://tektalk.uk/",
+		import.meta.env.DEV ? "http://localhost:8787" : "https://live.tektalk.uk",
 		room,
 		doc,
 		{
